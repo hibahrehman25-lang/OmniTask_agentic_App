@@ -1,13 +1,3 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path } from 'react-native-svg';
-import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS, SHADOWS } from '../config/theme';
-import { useLanguage } from '../i18n/LanguageContext';
-import { useAuth } from '../auth/AuthContext';
-import OmniTaskLogo from '../components/OmniTaskLogo';
-import GlassCard from '../components/GlassCard';
-import ParticleBackground from '../components/ParticleBackground';
 
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
