@@ -8,7 +8,7 @@ REGION=us-central1
 IMAGE=gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest
 
 # Build Docker image
-docker build -t ${IMAGE} .
+docker build --no-cache -t ${IMAGE} .
 # Push to Artifact Registry / Container Registry
 docker push ${IMAGE}
 # Deploy to Cloud Run (managed)

@@ -1,5 +1,8 @@
 .git
 node_modules
+mobile/node_modules
+mobile/web-build
+mobile/dist
 *.log
 *.test.js
 *.spec.js

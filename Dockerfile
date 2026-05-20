@@ -15,7 +15,6 @@ RUN npx expo export --platform web --output-dir web-build
 # Stage 2: Serve with Node.js 'serve'
 FROM node:20-alpine
 
-WORKDIR /app
 RUN npm install -g serve
 
 # Copy built web assets
