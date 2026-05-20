@@ -12,14 +12,17 @@ COPY mobile/ .
 # Export web build using the local npx cli (much faster and highly optimized)
 RUN npx expo export --platform web --output-dir web-build
 
-# Stage 2: Serve with Nginx
-FROM nginx:alpine
+# Stage 2: Serve with Node.js 'serve'
+FROM node:20-alpine
 
-# Copy built web assets to Nginx html directory
-COPY --from=builder /app/web-build /usr/share/nginx/html
+WORKDIR /app
+RUN npm install -g serve
 
-# Expose typical Cloud Run port (8080)
+# Copy built web assets
+COPY --from=builder /app/web-build ./web-build
+
+# Expose typical Cloud Run port
 EXPOSE 8080
 
-# Run nginx in foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Run serve on Cloud Run $PORT (or 8080 default)
+CMD serve -s web-build -l tcp://0.0.0.0:${PORT:-8080}

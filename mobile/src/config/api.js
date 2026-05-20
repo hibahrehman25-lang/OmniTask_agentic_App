@@ -4,18 +4,9 @@
  */
 import { Platform } from 'react-native';
 
-// Backend URL — adjust based on platform
-// Android emulator uses 10.0.2.2 for host localhost
-// Physical device: replace with your computer's local IP (e.g., 192.168.1.x)
+// Backend URL — Live Cloud Run Service
 const getBaseUrl = () => {
-  // REPLACE THIS WITH YOUR COMPUTER'S LOCAL IP (found via ipconfig / ifconfig)
-  const LOCAL_IP = '192.168.100.12'; // Example IP
-
-  if (Platform.OS === 'android') {
-    return `http://${LOCAL_IP}:5000`; // Use 10.0.2.2 for emulator, LOCAL_IP for physical device
-  }
-  // iOS simulator & web use localhost, but physical iOS needs LOCAL_IP
-  return `http://${LOCAL_IP}:5000`;
+  return 'https://omnitask-api-238789075812.us-central1.run.app';
 };
 
 export const API_BASE_URL = getBaseUrl();

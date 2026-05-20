@@ -177,9 +177,10 @@ def get_sample_scenarios():
 
 
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
     print("\n" + "=" * 60)
     print("  [*] Insight Action Agent - Backend Server")
-    print("  [>] Running on http://localhost:5000")
+    print(f"  [>] Running on port {port}")
     print("  [i] Endpoints:")
     print("     POST /api/analyze        - Run agent pipeline")
     print("     GET  /api/health         - Health check")
@@ -187,4 +188,4 @@ if __name__ == "__main__":
     print("     GET  /api/analysis/<id>  - Get specific analysis")
     print("     GET  /api/sample-scenarios - Demo scenarios")
     print("=" * 60 + "\n")
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False)
