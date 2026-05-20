@@ -1,19 +1,8 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform } from 'react-native';
-
 export async function analyzeContent({ text, file, fileType }) {
-  // Retrieve the user configured backend URL dynamically on each execution
-  const storedUrl = await AsyncStorage.getItem('backendUrl');
+  // Hardcoded production backend URL (omnitask-api)
+  const API_BASE_URL = 'https://omnitask-api-238789075812.us-central1.run.app';
   
-  // Default to correct localhost routing based on Platform
-  // Android emulator requires 10.0.2.2 to access host's localhost
-  const defaultUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://127.0.0.1:5000';
-  const API_BASE_URL = storedUrl || defaultUrl;
-  
-  // Strip trailing slashes to guarantee clean URL concatenation
-  const cleanUrl = API_BASE_URL.trim().replace(/\/$/, "");
-
-  const res = await fetch(`${cleanUrl}/api/analyze`, {
+  const res = await fetch(`${API_BASE_URL}/api/analyze`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

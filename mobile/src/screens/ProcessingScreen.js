@@ -8,6 +8,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,6 +30,7 @@ export default function ProcessingScreen({ inputContext, apiPromise, onCancel, o
   const { t, isRTL, rtlRow, rtlText } = useLanguage();
   const [activeStep, setActiveStep] = useState(0); // 0 to 6
   const [stepStates, setStepStates] = useState(['WAITING', 'WAITING', 'WAITING', 'WAITING', 'WAITING', 'WAITING']);
+  const [isWaitingForApi, setIsWaitingForApi] = useState(false);
   
   // Animated values for active pulsing dot
   const pulseAnim = useRef(new Animated.Value(0.8)).current;
@@ -133,6 +135,9 @@ export default function ProcessingScreen({ inputContext, apiPromise, onCancel, o
         useNativeDriver: false,
       }).start();
       timelineCompleteRef.current = true;
+      if (!apiResponseRef.current && !apiErrorRef.current) {
+        setIsWaitingForApi(true);
+      }
       checkTransition();
     }, 9000);
 
@@ -266,6 +271,16 @@ export default function ProcessingScreen({ inputContext, apiPromise, onCancel, o
               );
             })}
           </View>
+
+          {/* Long running API indicator */}
+          {isWaitingForApi && (
+            <View style={styles.waitingContainer}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+              <Text style={[styles.waitingText, rtlText]}>
+                Agents are still processing your document...
+              </Text>
+            </View>
+          )}
 
           {/* Cancel button */}
           <TouchableOpacity style={styles.cancelButton} onPress={onCancel} activeOpacity={0.85}>
@@ -488,6 +503,19 @@ const styles = StyleSheet.create({
     color: COLORS.danger,
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: 'Inter',
+  },
+  waitingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: SPACING.md,
+    marginBottom: SPACING.md,
+  },
+  waitingText: {
+    marginTop: SPACING.sm,
+    fontSize: 13,
+    color: COLORS.primary,
+    fontWeight: '500',
     fontFamily: 'Inter',
   },
 });

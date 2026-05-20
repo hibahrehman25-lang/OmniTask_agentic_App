@@ -25,60 +25,9 @@ export default function SettingsScreen() {
   const { t, isRTL, rtlRow, rtlText, toggleLanguage, currentLang } = useLanguage();
   const { user, signOut } = useAuth();
   
-  const defaultUrl = Platform.OS === 'android' ? 'http://10.0.2.2:5000' : 'http://127.0.0.1:5000';
-  const [backendUrl, setBackendUrl] = useState(defaultUrl);
-  const [isCheckingHealth, setIsCheckingHealth] = useState(false);
-  const [healthStatus, setHealthStatus] = useState('unknown'); // 'connected' | 'disconnected' | 'unknown'
-  const [starRating, setStarRating] = useState(5);
-
   useEffect(() => {
-    const loadBackendUrl = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('backendUrl');
-        if (stored) {
-          setBackendUrl(stored);
-          checkHealth(stored);
-        } else {
-          checkHealth(backendUrl);
-        }
-      } catch (err) {
-        console.warn('Failed to load backend URL from storage', err);
-      }
-    };
-    loadBackendUrl();
+    // Only check health on mount if needed, otherwise no-op since it's hardcoded
   }, []);
-
-  const checkHealth = async (url) => {
-    setIsCheckingHealth(true);
-    try {
-      const cleanUrl = url.trim().replace(/\/$/, "");
-      const res = await fetch(`${cleanUrl}/api/health`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(5000), 
-      });
-      if (res.ok) {
-        setHealthStatus('connected');
-      } else {
-        setHealthStatus('disconnected');
-      }
-    } catch (err) {
-      setHealthStatus('disconnected');
-    } finally {
-      setIsCheckingHealth(false);
-    }
-  };
-
-  const handleSaveUrl = async () => {
-    const cleanUrl = backendUrl.trim().replace(/\/$/, "");
-    try {
-      await AsyncStorage.setItem('backendUrl', cleanUrl);
-      await checkHealth(cleanUrl);
-      Alert.alert(t('configSaved'), `${t('configSavedDesc')}${cleanUrl}`);
-    } catch (err) {
-      Alert.alert(t('saveFailed'), t('saveFailedDesc'));
-    }
-  };
 
   const handleClearHistory = async () => {
     Alert.alert(
@@ -91,7 +40,7 @@ export default function SettingsScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              await AsyncStorage.removeItem('analyses_history');
+              await AsyncStorage.setItem('analyses_history', '[]');
               Alert.alert(t('deleted') || "Success", t('historyCleared') || "All analyzed runs have been cleared.");
             } catch (err) {
               Alert.alert("Error", "Failed to clear history.");
@@ -99,13 +48,6 @@ export default function SettingsScreen() {
           }
         }
       ]
-    );
-  };
-
-  const handleRateApp = () => {
-    Alert.alert(
-      "Thank you!",
-      "You rated the OmniTask Autonomous Agent 50 out of 50 stars! Your support inspires our engineering team."
     );
   };
 
@@ -153,47 +95,6 @@ export default function SettingsScreen() {
             </View>
           </GlassCard>
 
-          {/* SECTION 3: Backend URL configuration */}
-          <GlassCard style={styles.cardMargin}>
-            <Text style={[styles.sectionHeading, rtlText]}>{t('backendUrl')}</Text>
-            
-            <TextInput
-              style={styles.urlInput}
-              value={backendUrl}
-              onChangeText={setBackendUrl}
-              placeholder="http://192.168.1.X:5000"
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="url"
-              placeholderTextColor="rgba(255,255,255,0.3)"
-            />
-
-            <View style={[styles.healthRow, rtlRow]}>
-              <TouchableOpacity style={styles.saveBtn} onPress={handleSaveUrl} activeOpacity={0.85}>
-                {isCheckingHealth ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.saveBtnText}>{t('saveAndCheck')}</Text>
-                )}
-              </TouchableOpacity>
-
-              <View style={styles.healthStatusBadge}>
-                <View style={[
-                  styles.healthDot,
-                  healthStatus === 'connected' ? styles.dotGreen :
-                  healthStatus === 'disconnected' ? styles.dotRed : styles.dotGray
-                ]} />
-                <Text style={[
-                  styles.healthStatusText,
-                  healthStatus === 'connected' ? styles.textGreen :
-                  healthStatus === 'disconnected' ? styles.textRed : styles.textGray
-                ]}>
-                  {healthStatus === 'connected' ? t('connected') :
-                   healthStatus === 'disconnected' ? t('disconnected') : t('unknownStatus')}
-                </Text>
-              </View>
-            </View>
-          </GlassCard>
 
           {/* SECTION 4: Maintenance Actions */}
           <GlassCard style={styles.cardMargin}>
@@ -207,48 +108,6 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={16} color={COLORS.textMuted} />
             </TouchableOpacity>
 
-            <View style={styles.gridDivider} />
-
-            <TouchableOpacity style={[styles.actionRowBtn, rtlRow]} onPress={handleRateApp} activeOpacity={0.8}>
-              <View style={[styles.actionRowLeft, rtlRow]}>
-                <Ionicons name="star" size={18} color="#FBBF24" />
-                <Text style={styles.actionRowText}>Rate Antigravity Agent Pipeline</Text>
-              </View>
-              <View style={styles.ratingBadge}>
-                <Text style={styles.ratingBadgeText}>50 / 50</Text>
-              </View>
-            </TouchableOpacity>
-          </GlassCard>
-
-          {/* SECTION 5: About Information */}
-          <GlassCard style={styles.cardMargin}>
-            <Text style={[styles.sectionHeading, rtlText]}>{t('about')}</Text>
-            <View style={styles.aboutContent}>
-              <View style={styles.aboutLogoRow}>
-                <OmniTaskLogo size={32} />
-                <View>
-                  <Text style={styles.aboutName}>{t('appName')}</Text>
-                  <Text style={styles.aboutTagline}>{t('tagline')}</Text>
-                </View>
-              </View>
-
-              <View style={styles.aboutGrid}>
-                <View style={[styles.aboutGridRow, rtlRow]}>
-                  <Text style={styles.aboutLabel}>{t('appVersion')}</Text>
-                  <Text style={styles.aboutValue}>v2.0.0 (Production Build)</Text>
-                </View>
-                <View style={{ height: 0.5, backgroundColor: COLORS.cardBorder }} />
-                <View style={[styles.aboutGridRow, rtlRow]}>
-                  <Text style={styles.aboutLabel}>{t('activeAgents')}</Text>
-                  <Text style={styles.aboutValue}>{t('activeAgentsValue')}</Text>
-                </View>
-                <View style={{ height: 0.5, backgroundColor: COLORS.cardBorder }} />
-                <View style={[styles.aboutGridRow, rtlRow]}>
-                  <Text style={styles.aboutLabel}>Architecture</Text>
-                  <Text style={styles.aboutValue}>Multi-Agent Orchestrated System</Text>
-                </View>
-              </View>
-            </View>
           </GlassCard>
 
           {/* Spacer to prevent navbar overlapping */}

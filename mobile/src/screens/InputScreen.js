@@ -87,9 +87,11 @@ export default function InputScreen({ onNavigateToProcessing }) {
   const { t, isRTL, rtlText, rtlRow, currentLang } = useLanguage();
   const [text, setText] = useState('');
   const [attachedFile, setAttachedFile] = useState(null); // { name, base64, type }
+  const [sampleIndex, setSampleIndex] = useState(null);
 
   const handlePickDocument = async (mimeType, fileType) => {
     try {
+      setSampleIndex(null); // Reset sample when picking real file
       const res = await DocumentPicker.getDocumentAsync({
         type: mimeType,
         copyToCacheDirectory: true,
@@ -98,6 +100,15 @@ export default function InputScreen({ onNavigateToProcessing }) {
       if (!res.canceled && res.assets && res.assets.length > 0) {
         const file = res.assets[0];
         let base64;
+        
+        let actualFileType = fileType;
+        if (file.name.toLowerCase().endsWith('.xlsx')) {
+          actualFileType = 'xlsx';
+        } else if (file.name.toLowerCase().endsWith('.csv')) {
+          actualFileType = 'csv';
+        } else if (file.name.toLowerCase().endsWith('.txt')) {
+          actualFileType = 'txt';
+        }
 
         if (Platform.OS === 'web') {
           // Fallback to fetch and FileReader on Web because FileSystem.readAsStringAsync crashes
@@ -107,7 +118,8 @@ export default function InputScreen({ onNavigateToProcessing }) {
             const reader = new FileReader();
             reader.onload = () => {
               const dataUrl = reader.result;
-              resolve(dataUrl.split(',')[1]);
+              const b64Data = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+              resolve(b64Data);
             };
             reader.onerror = reject;
             reader.readAsDataURL(blob);
@@ -121,7 +133,7 @@ export default function InputScreen({ onNavigateToProcessing }) {
         setAttachedFile({
           name: file.name,
           base64: base64,
-          type: fileType,
+          type: actualFileType,
         });
       }
     } catch (err) {
@@ -132,6 +144,7 @@ export default function InputScreen({ onNavigateToProcessing }) {
 
   const handlePickImage = async () => {
     try {
+      setSampleIndex(null); // Reset sample when picking real file
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permissions', 'Photo library access is required to attach images.');
@@ -186,6 +199,7 @@ export default function InputScreen({ onNavigateToProcessing }) {
   const handleSampleTap = (index) => {
     const samplesArr = SAMPLE_TEXTS[currentLang] || SAMPLE_TEXTS['en'];
     setText(samplesArr[index]);
+    setSampleIndex(index);
   };
 
   const handleAnalyzePress = () => {
@@ -198,6 +212,7 @@ export default function InputScreen({ onNavigateToProcessing }) {
       text: text,
       file: attachedFile ? attachedFile.base64 : null,
       fileType: attachedFile ? attachedFile.type : null,
+      sampleIndex: sampleIndex,
     });
   };
 
@@ -237,7 +252,7 @@ export default function InputScreen({ onNavigateToProcessing }) {
                 placeholder={t('inputPlaceholder')}
                 placeholderTextColor={COLORS.textMuted}
                 value={text}
-                onChangeText={setText}
+                onChangeText={(val) => { setText(val); setSampleIndex(null); }}
                 underlineColorAndroid="transparent"
               />
               <Text style={styles.charCounter}>{text.length} ch</Text>

@@ -2,6 +2,13 @@ import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword, 
+  signOut as firebaseSignOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth } from './firebaseConfig';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -21,21 +28,39 @@ export const AuthProvider = ({ children }) => {
   });
 
   useEffect(() => {
-    // Check for existing session in AsyncStorage on startup
-    const checkSession = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem('user_session');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (err) {
-        console.warn('Failed to load user session', err);
-      } finally {
+    // Listen to Firebase Auth state
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          name: firebaseUser.displayName || 'User',
+          email: firebaseUser.email,
+          photo: firebaseUser.photoURL || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80',
+          uid: firebaseUser.uid
+        });
         setIsLoading(false);
+      } else {
+        // If not authenticated via Firebase, fallback to checking AsyncStorage (for Demo Google Login)
+        checkLocalSession();
       }
-    };
-    checkSession();
+    });
+
+    return unsubscribe;
   }, []);
+
+  const checkLocalSession = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('user_session');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      console.warn('Failed to load user session', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle Google Auth Response
   useEffect(() => {
@@ -83,11 +108,12 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
-    setUser(null);
     try {
+      await firebaseSignOut(auth);
       await AsyncStorage.removeItem('user_session');
+      setUser(null);
     } catch (err) {
-      console.warn('Failed to remove user session', err);
+      console.warn('Failed to sign out', err);
     }
   };
 
@@ -105,8 +131,42 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Firebase Email/Password Sign Up
+  const signUpWithEmail = async (email, password) => {
+    try {
+      setIsLoading(true);
+      await createUserWithEmailAndPassword(auth, email, password);
+      // user state will be updated by onAuthStateChanged listener
+      return { success: true };
+    } catch (error) {
+      setIsLoading(false);
+      return { success: false, error: error.message };
+    }
+  };
+
+  // Firebase Email/Password Sign In
+  const signInWithEmail = async (email, password) => {
+    try {
+      setIsLoading(true);
+      await signInWithEmailAndPassword(auth, email, password);
+      // user state will be updated by onAuthStateChanged listener
+      return { success: true };
+    } catch (error) {
+      setIsLoading(false);
+      return { success: false, error: error.message };
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, signIn, signOut, request }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      isLoading, 
+      signIn, 
+      signOut, 
+      signUpWithEmail,
+      signInWithEmail,
+      request 
+    }}>
       {children}
     </AuthContext.Provider>
   );

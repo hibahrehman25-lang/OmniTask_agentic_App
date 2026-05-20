@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS, SPACING, FONT_SIZES, BORDER_RADIUS } from '../config/theme';
@@ -143,33 +144,36 @@ export default function HistoryScreen({ onSelectItem }) {
   const { t, isRTL, rtlRow, rtlText } = useLanguage();
   const [history, setHistory] = useState([]);
 
-  useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const stored = await AsyncStorage.getItem('analyses_history');
-        if (stored) {
-          setHistory(JSON.parse(stored));
-        } else {
-          // Fallback high-fidelity sample history item to make it look premium on first launch
-          const sampleHistory = [
-            {
-              id: "A7F3",
-              timestamp: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-              domain: "SALES",
-              title: "Lahore Region Retail Sales Drop Analysis",
-              severity: "HIGH",
-              insightsCount: 2,
-              data: null // Fallback to MOCK_RESULTS
-            }
-          ];
-          setHistory(sampleHistory);
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadHistory = async () => {
+        try {
+          const stored = await AsyncStorage.getItem('analyses_history');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            setHistory(parsed);
+          } else {
+            // Fallback high-fidelity sample history item to make it look premium on first launch
+            const sampleHistory = [
+              {
+                id: "A7F3",
+                timestamp: new Date().toLocaleDateString() + " " + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+                domain: "SALES",
+                title: "Lahore Region Retail Sales Drop Analysis",
+                severity: "HIGH",
+                insightsCount: 2,
+                data: null // Fallback to MOCK_RESULTS
+              }
+            ];
+            setHistory(sampleHistory);
+          }
+        } catch (err) {
+          console.warn('Failed to load history', err);
         }
-      } catch (err) {
-        console.warn('Failed to load history', err);
-      }
-    };
-    loadHistory();
-  }, []);
+      };
+      loadHistory();
+    }, [])
+  );
 
   const getSeverityColor = (sev) => {
     if (sev === 'HIGH' || sev === '4/5' || sev === '5/5') return COLORS.danger;

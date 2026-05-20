@@ -12,6 +12,7 @@ import HistoryScreen from './src/screens/HistoryScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import BottomNavBar from './src/components/BottomNavBar';
 import { analyzeContent } from './src/api/analyze';
+import { getMockDataForSample } from './src/config/mockData';
 import { COLORS } from './src/config/theme';
 
 // Suppress React Native layout and console warning noise
@@ -47,11 +48,18 @@ function MainNavigator() {
 
   // Trigger analysis call and transition to Processing Screen
   const handleInitiateAnalysis = (inputContext) => {
-    const promise = analyzeContent({
-      text: inputContext.text,
-      file: inputContext.file,
-      fileType: inputContext.fileType
-    });
+    let promise;
+    if (inputContext.sampleIndex !== null && inputContext.sampleIndex !== undefined) {
+      // It's a sample. Create a mocked promise to simulate backend processing.
+      promise = new Promise(resolve => setTimeout(() => resolve(getMockDataForSample(inputContext.sampleIndex)), 100));
+    } else {
+      // It's real data. Send it to the actual backend API.
+      promise = analyzeContent({
+        text: inputContext.text,
+        file: inputContext.file,
+        fileType: inputContext.fileType
+      });
+    }
     setApiPromise(promise);
     setIsProcessing(true);
   };

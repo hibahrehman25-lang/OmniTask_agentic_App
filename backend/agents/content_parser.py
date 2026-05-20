@@ -36,6 +36,8 @@ class ContentParserAgent(BaseAgent):
                 import base64
                 import io
                 try:
+                    # Fix padding if missing
+                    file_b64 += "=" * ((4 - len(file_b64) % 4) % 4)
                     file_bytes = base64.b64decode(file_b64)
                     
                     # 1. Multimodal Binary Formats (Passed directly to Gemini)
@@ -240,6 +242,8 @@ TEXT TO ANALYZE:{file_info}
             return parsed, trace
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             duration = int((time.time() - start) * 1000)
             fallback = {
                 "domain": "unknown",

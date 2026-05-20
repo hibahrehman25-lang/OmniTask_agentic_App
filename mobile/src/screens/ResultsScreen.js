@@ -18,138 +18,21 @@ import GlassCard from '../components/GlassCard';
 
 const { width } = Dimensions.get('window');
 
-// High-Fidelity Mock results as complete fallback and validation data
-const MOCK_RESULTS = {
-  run_id: "A7F3",
-  duration: 8.2,
-  insights: [
-    {
-      type: "SALES CRISIS",
-      severity: "HIGH",
-      confidence: 94,
-      title: "Lahore Region Retail Sales Drop",
-      description: "Q4 orders plummeted 30% YoY due to active local competitive pricing strategy and drop in CSAT from 4.2 to 2.8.",
-      evidence: "Competitor opened 3 stores within same 2km radius; user complaints spiked 45%.",
-      domain_tags: ["Sales", "Lahore", "Retail"]
-    },
-    {
-      type: "COST RISK",
-      severity: "MEDIUM",
-      confidence: 88,
-      title: "Fuel Logistics Price Increase Impact",
-      description: "15% prompt fuel price hike will increase Punjab delivery expenditures by 18-22% standard markup.",
-      evidence: "Operational logistics report standard 1.2x multiplier on last-mile delivery routes.",
-      domain_tags: ["Logistics", "Punjab", "Supply Chain"]
-    }
-  ],
-  revenue_risk: "Rs 2,500,000",
-  severity: "4/5",
-  stakeholders: ["Lahore Retail Outlets", "Logistics Partners", "Punjab Operations Teams"],
-  timeline_warning: {
-    urgency: "URGENT",
-    text: "Action required within 48 hours to prevent competitor customer acquisition lock-in."
-  },
-  if_unaddressed: "Customer attrition will increase by 60% over the next quarter, translating to permanent brand share loss in Punjab territory.",
-  recommended_actions: [
-    {
-      rank: 1,
-      title: "Launch Loyalty Rewards & Immediate Promo Scheme",
-      owner: "Marketing Lead",
-      timeline: "24 Hours",
-      tools: ["CRM", "Promo Engine"],
-      expected_outcome: "Recover 75% of customer orders and pull CSAT up to 3.8",
-      confidence: 92
-    },
-    {
-      rank: 2,
-      title: "Optimize Lahore Logistics Routes & Fuel Subsidies",
-      owner: "Logistics Manager",
-      timeline: "3 Days",
-      tools: ["Route Optimizer", "ERP"],
-      expected_outcome: "Stabilize transport margins at 8-10% cost absorption",
-      confidence: 85
-    }
-  ],
-  simulation: {
-    state_change: {
-      before: [
-        { label: "Orders Drop", value: "-30%", trend: "down", color: "#FB7185" },
-        { label: "Customer CSAT", value: "2.8 / 5.0", trend: "down", color: "#FB7185" },
-        { label: "Revenue Leak", value: "Rs 2.5M", trend: "up", color: "#FB7185" }
-      ],
-      after: [
-        { label: "Orders Drop", value: "-5%", trend: "up", color: "#34D399" },
-        { label: "Customer CSAT", value: "3.8 / 5.0", trend: "up", color: "#34D399" },
-        { label: "Revenue Leak", value: "Rs 0.4M", trend: "down", color: "#34D399" }
-      ]
-    },
-    chart_data: [
-      { label: "Orders", before: 70, after: 95 },
-      { label: "CSAT", before: 56, after: 76 },
-      { label: "Revenue", before: 20, after: 88 }
-    ],
-    api_call: "POST /api/v1/promotions/activate\n{\n  \"region\": \"lahore\",\n  \"campaign\": \"loyalty_bounce_back\",\n  \"budget_cap\": 500000\n}\n\nResponse 200 OK\n{\n  \"status\": \"success\",\n  \"activated_channels\": 4,\n  \"reached_users\": 18240\n}",
-    notification: {
-      channel: "SMS / App Push",
-      subject: "Special Lahore Loyalty Bonus Activated!",
-      body: "Enjoy Rs 500 off on your next 3 orders. We miss you! Tap to claim your exclusive rewards instantly."
-    },
-    timeline: [
-      { time: "09:00", text: "Simulation scenario initialized for Lahore crisis." },
-      { time: "09:02", text: "Promotional system triggers mock campaign API." },
-      { time: "09:04", text: "SMS notifications mock-queued for 18,240 customers." },
-      { time: "09:05", text: "Projected metrics stabilization confirmed." }
-    ],
-    projected_outcome: "The system successfully demonstrates automated crisis mitigation, recovering Rs 2.1M of the Rs 2.5M at-risk revenue by re-engaging localized retail consumers."
-  },
-  trace: [
-    {
-      agent: "Content Parser",
-      status: "Success",
-      decision: "Extracted Rs 2.5M risk & 30% decline",
-      confidence: "98%",
-      steps: ["Normalized text body and extracted key numerics.", "Entity mapping: Lahore (location), 30% drop (trend).", "Identified competitor expansion factors."]
-    },
-    {
-      agent: "Insight Extractor",
-      status: "Success",
-      decision: "Correlated competitor opening to CSAT drop",
-      confidence: "94%",
-      steps: ["Mapped complaint volume against localized stores.", "Formulated competitive friction factor.", "Identified pricing arbitrage risk."]
-    },
-    {
-      agent: "Impact Analyzer",
-      status: "Success",
-      decision: "Quantified Punjab supply logistics impact",
-      confidence: "91%",
-      steps: ["Calculated downstream operational cost multiplier.", "Evaluated medium-term attrition timelines.", "Assessed stakeholder panic factors."]
-    },
-    {
-      agent: "Action Generator",
-      status: "Success",
-      decision: "Prioritized Loyalty Campaign recommendation",
-      confidence: "95%",
-      steps: ["Ranked recovery speed of customer incentives.", "Evaluated logistic subsidy ROI margins.", "Drafted action execution owners."]
-    },
-    {
-      agent: "Action Simulator",
-      status: "Success",
-      decision: "Simulated CRM promotion bounce back",
-      confidence: "89%",
-      steps: ["Constructed Before/After operational matrices.", "Simulated push campaign response rates.", "Validated mock API endpoint structures."]
-    },
-    {
-      agent: "Outcome Visualizer",
-      status: "Success",
-      decision: "Generated comprehensive executive dashboard",
-      confidence: "97%",
-      steps: ["Rendered metric charts and timeline graphs.", "Formatted trace logs for judges' audits.", "Finalized analysis run packages."]
-    }
-  ]
-};
-
+// Dynamic data normalization
 function normalizeApiResponse(apiResponse) {
-  if (!apiResponse) return MOCK_RESULTS;
+  if (!apiResponse) return {
+    run_id: "NONE",
+    duration: "0.0",
+    insights: [],
+    revenue_risk: "N/A",
+    severity: "N/A",
+    stakeholders: [],
+    timeline_warning: null,
+    if_unaddressed: "N/A",
+    recommended_actions: [],
+    simulation: null,
+    trace: []
+  };
   
   // If it's already normalized, return it
   if (apiResponse.insights && Array.isArray(apiResponse.insights) && apiResponse.insights[0] && apiResponse.insights[0].evidence && typeof apiResponse.insights[0].confidence === 'number') {
@@ -191,10 +74,6 @@ function normalizeApiResponse(apiResponse) {
     };
   });
 
-  if (insights.length === 0) {
-    insights.push(...MOCK_RESULTS.insights);
-  }
-
   // 2. Normalize Impact
   const primaryImpact = rawImpactList[0] || {};
   const revenue_risk = primaryImpact.financial_implication ? `Rs ${primaryImpact.financial_implication.toLocaleString()}` : (apiResponse.revenue_risk || "Rs 0");
@@ -221,10 +100,6 @@ function normalizeApiResponse(apiResponse) {
       confidence: confidenceVal
     };
   });
-
-  if (recommended_actions.length === 0) {
-    recommended_actions.push(...MOCK_RESULTS.recommended_actions);
-  }
 
   // 4. Normalize Simulation
   let simulation = null;
@@ -291,10 +166,6 @@ function normalizeApiResponse(apiResponse) {
     };
   }
 
-  if (!simulation) {
-    simulation = MOCK_RESULTS.simulation;
-  }
-
   // 5. Normalize Traces
   const traceList = Array.isArray(context.agent_traces) ? context.agent_traces : (Array.isArray(apiResponse.agent_trace) ? apiResponse.agent_trace : []);
   const trace = traceList.map((tr, idx) => {
@@ -306,10 +177,6 @@ function normalizeApiResponse(apiResponse) {
       steps: Array.isArray(tr.reasoning_steps) ? tr.reasoning_steps : ["Executed standard agent reasoning chain."]
     };
   });
-
-  if (trace.length === 0) {
-    trace.push(...MOCK_RESULTS.trace);
-  }
 
   return {
     run_id: context.run_id || apiResponse.run_id || "A7F3",
